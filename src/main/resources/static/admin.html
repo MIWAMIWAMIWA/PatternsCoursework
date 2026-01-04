@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Панель адміністратора - MedBooking</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-light">
+
+<nav class="navbar navbar-dark bg-dark mb-4">
+    <div class="container-fluid">
+        <span class="navbar-brand mb-0 h1">MedBooking Admin Dashboard</span>
+        <a href="doctor.html" class="btn btn-outline-light btn-sm">На головну</a>
+    </div>
+</nav>
+
+<div class="container">
+    <h2 class="mb-4">Загальна статистика</h2>
+
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card text-white bg-primary mb-3 shadow">
+                <div class="card-header">Прийоми сьогодні</div>
+                <div class="card-body">
+                    <h1 class="card-title display-4" id="statToday">-</h1>
+                    <p class="card-text">Записів на поточну добу</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-white bg-success mb-3 shadow">
+                <div class="card-header">Прийоми за місяць</div>
+                <div class="card-body">
+                    <h1 class="card-title display-4" id="statMonth">-</h1>
+                    <p class="card-text">Активність у цьому місяці</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-white bg-warning mb-3 shadow">
+                <div class="card-header">Всього пацієнтів</div>
+                <div class="card-body">
+                    <h1 class="card-title display-4" id="statPatients">-</h1>
+                    <p class="card-text">Зареєстрованих у системі</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 bg-white">
+            <h6 class="m-0 font-weight-bold text-primary">Налаштування звіту</h6>
+        </div>
+        <div class="card-body">
+            <form id="reportForm" class="row g-3 align-items-end">
+                <div class="col-md-3">
+                    <label class="form-label">Тип звіту</label>
+                    <select id="reportType" class="form-select">
+                        <option value="APPOINTMENTS">Прийоми / Завантаженість</option>
+                        <option value="PATIENTS">Динаміка нових пацієнтів</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">З</label>
+                    <input type="date" id="dateStart" class="form-control" required>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">По</label>
+                    <input type="date" id="dateEnd" class="form-control" required>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Лікар (опціонально)</label>
+                    <select id="doctorSelect" class="form-select">
+                        <option value="">Всі лікарі</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="button" class="btn btn-primary w-100" onclick="generateReport()">Сформувати</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="row mb-5">
+        <div class="col-md-12">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Графік статистики</h6>
+                </div>
+                <div class="card-body">
+                    <div class="chart-area" style="position: relative; height: 400px; width: 100%;">
+                        <canvas id="doctorsChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <h3 class="mb-3">Керування системою</h3>
+    <div class="card shadow mb-5">
+        <div class="card-header bg-white">
+            <ul class="nav nav-tabs card-header-tabs" id="adminTabs" role="tablist">
+                <li class="nav-item">
+                    <button class="nav-link active" id="doctors-tab" data-bs-toggle="tab" data-bs-target="#doctors" type="button" onclick="AdminTableManager.loadDoctors()">
+                        Лікарі
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link" id="patients-tab" data-bs-toggle="tab" data-bs-target="#patients" type="button" onclick="AdminTableManager.loadPatients()">
+                        Пацієнти
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link" id="appointments-tab" data-bs-toggle="tab" data-bs-target="#appointments" type="button" onclick="AdminTableManager.loadAppointments()">
+                        Всі записи
+                    </button>
+                </li>
+            </ul>
+        </div>
+        <div class="card-body">
+            <div class="tab-content" id="adminTabsContent">
+
+                <div class="tab-pane fade show active" id="doctors" role="tabpanel">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                            <tr>
+                                <th>ID</th>
+                                <th>ПІБ</th>
+                                <th>Спеціалізація</th>
+                                <th>Email</th>
+                                <th>Статус</th>
+                            </tr>
+                            </thead>
+                            <tbody id="doctorsTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="tab-pane fade" id="patients" role="tabpanel">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                            <tr>
+                                <th>ID</th>
+                                <th>ПІБ</th>
+                                <th>Email</th>
+                                <th>Телефон</th>
+                                <th>Дата народження</th>
+                            </tr>
+                            </thead>
+                            <tbody id="patientsTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="tab-pane fade" id="appointments" role="tabpanel">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                            <tr>
+                                <th>Дата і Час</th>
+                                <th>Лікар</th>
+                                <th>Пацієнт</th>
+                                <th>Телефон пацієнта</th>
+                                <th>Статус</th>
+                            </tr>
+                            </thead>
+                            <tbody id="appointmentsTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="admin.js"></script>
+
+</body>
+</html>
